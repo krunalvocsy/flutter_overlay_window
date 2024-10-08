@@ -129,8 +129,8 @@ public class OverlayService extends Service implements View.OnTouchListener {
                 String flag = call.argument("flag").toString();
                 updateOverlayFlag(result, flag);
             } else if (call.method.equals("updateOverlayPosition")) {
-                int x = call.<Integer>argument("x");
-                int y = call.<Integer>argument("y");
+                double x = call.<Double>argument("x");
+                double y = call.<Double>argument("y");
                 moveOverlay(x, y, result);
             } else if (call.method.equals("resizeOverlay")) {
                 int width = call.argument("width");
@@ -250,19 +250,25 @@ public class OverlayService extends Service implements View.OnTouchListener {
         }
     }
 
-    private void moveOverlay(int x, int y, MethodChannel.Result result) {
+    private void moveOverlay(double x, double y, MethodChannel.Result result) {
         if (windowManager != null) {
             WindowManager.LayoutParams params = (WindowManager.LayoutParams) flutterView.getLayoutParams();
-            params.x = (x == -1999 || x == -1) ? -1 : dpToPx(x);
-            params.y = dpToPx(y);
+
+            // Update x and y coordinates
+            params.x = (x == -1999 || x == -1) ? -1 : dpToPx((int) x); // Cast to int when converting to dp
+            params.y = dpToPx((int) y); // Cast to int when converting to dp
+
+            // Update the overlay window position
             windowManager.updateViewLayout(flutterView, params);
+
             if (result != null)
-                result.success(true);
+                result.success(true); // Indicate success
         } else {
             if (result != null)
-                result.success(false);
+                result.success(false); // Indicate failure if windowManager is null
         }
     }
+
 
 
     public static Map<String, Double> getCurrentPosition() {
@@ -347,7 +353,7 @@ public class OverlayService extends Service implements View.OnTouchListener {
         return mResources.getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
     }
 
-    @Override
+/*    @Override
     public boolean onTouch(View view, MotionEvent event) {
         if (windowManager != null && WindowSetup.enableDrag) {
             WindowManager.LayoutParams params = (WindowManager.LayoutParams) flutterView.getLayoutParams();
@@ -397,6 +403,145 @@ public class OverlayService extends Service implements View.OnTouchListener {
             return false;
         }
         return false;
+    }*/
+
+    /// work left side
+ /*   @Override
+    public boolean onTouch(View view, MotionEvent event) {
+        if (windowManager != null && WindowSetup.enableDrag) {
+            WindowManager.LayoutParams params = (WindowManager.LayoutParams) flutterView.getLayoutParams();
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    dragging = false;
+
+                    lastX = event.getRawX();
+                    lastY = event.getRawY();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = event.getRawX() - lastX;
+                    float dy = event.getRawY() - lastY;
+
+
+                    // Minimum movement threshold (optional, adjust as needed)
+                    if (!dragging && (dx * dx + dy * dy < 25)) {
+                        return false;
+                    }
+
+                    // Update position for both horizontal and vertical movement
+                    params.x += (int) dx;
+                    params.y += (int) dy;
+
+                    // Handle gravity inversion for all directions
+                    boolean invertX = handleGravityInversion(WindowSetup.gravity, Gravity.LEFT, Gravity.RIGHT, params.x, getScreenWidth() - flutterView.getWidth());
+                    params.x = invertX ? Math.max(params.x, 0) : Math.min(params.x, getScreenWidth() - flutterView.getWidth()); // Prevent off-screen
+
+                    boolean invertY = handleGravityInversion(WindowSetup.gravity, Gravity.TOP, Gravity.BOTTOM, params.y, getScreenHeight() - flutterView.getHeight());
+                    params.y = invertY ? Math.max(params.y, 0) : Math.min(params.y, getScreenHeight() - flutterView.getHeight()); // Prevent off-screen
+
+                    if (windowManager != null) {
+                        windowManager.updateViewLayout(flutterView, params);
+                    }
+                    dragging = true;
+                    lastX = event.getRawX(); // Update start position for continuous drag
+                    lastY = event.getRawY();
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    lastYPosition = params.y;
+                    if (!WindowSetup.positionGravity.equals("none")) {
+                        if (windowManager == null) return false;
+                        windowManager.updateViewLayout(flutterView, params);
+                        // Handle potential animation (not shown in current code)
+                    }
+                    return false;
+                default:
+                    return false;
+            }
+            return true; // Indicate event handled to prevent parent views from capturing touches
+        }
+        return false;
+    }
+
+   *//* private boolean handleGravityInversion(int gravity, int leftGravity, int rightGravity, int currentPosition, int maxPosition) {
+        return (gravity == leftGravity || gravity == (Gravity.CENTER | leftGravity) || gravity == (Gravity.BOTTOM | leftGravity)) && currentPosition < 0
+                || (gravity == rightGravity || gravity == (Gravity.CENTER | rightGravity) || gravity == (Gravity.BOTTOM | rightGravity)) && currentPosition > maxPosition;
+    }*/
+
+    @Override
+    public boolean onTouch(View view, MotionEvent event) {
+        if (windowManager != null && WindowSetup.enableDrag) {
+            WindowManager.LayoutParams params = (WindowManager.LayoutParams) flutterView.getLayoutParams();
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    dragging = false;
+
+                    lastX = event.getRawX();
+                    lastY = event.getRawY();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = event.getRawX() - lastX;
+                    float dy = event.getRawY() - lastY;
+
+                    // Minimum movement threshold (optional, adjust as needed)
+                    if (!dragging && (dx * dx + dy * dy < 25)) {
+                        return false;
+                    }
+
+                    // Update position for both horizontal and vertical movement
+                    int newX = (int) (params.x + dx);
+                    int newY = (int) (params.y + dy);
+
+                    // Handle gravity inversion for all directions
+                    boolean invertX = handleGravityInversion(WindowSetup.gravity, Gravity.LEFT, Gravity.RIGHT, newX, getScreenWidth() - flutterView.getWidth());
+                    newX = invertX ? Math.max(newX, 0) : Math.min(newX, getScreenWidth() ); // Prevent off-screen
+
+                    boolean invertY = handleGravityInversion(WindowSetup.gravity, Gravity.TOP, Gravity.BOTTOM, newY, getScreenHeight() - flutterView.getHeight());
+                    newY = invertY ? Math.max(newY, 0) : Math.min(newY, getScreenHeight()); // Prevent off-screen
+
+                    params.x = newX;
+                    params.y = newY;
+
+                    if (windowManager != null) {
+                        windowManager.updateViewLayout(flutterView, params);
+                    }
+                    dragging = true;
+                    lastX = event.getRawX(); // Update start position for continuous drag
+                    lastY = event.getRawY();
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    lastYPosition = params.y;
+                    if (!WindowSetup.positionGravity.equals("none")) {
+                        if (windowManager == null) return false;
+                        windowManager.updateViewLayout(flutterView, params);
+                        // Handle potential animation (not shown in current code)
+                    }
+                    return false;
+                default:
+                    return false;
+            }
+            return true; // Indicate event handled to prevent parent views from capturing touches
+        }
+        return false;
+    }
+    private boolean handleGravityInversion(int gravity, int leftGravity, int rightGravity, int currentPosition, int maxPosition) {
+        return (gravity == leftGravity || gravity == (Gravity.CENTER | leftGravity) || gravity == (Gravity.BOTTOM | leftGravity)) && currentPosition < 0
+                || (gravity == rightGravity || gravity == (Gravity.CENTER | rightGravity) || gravity == (Gravity.BOTTOM | rightGravity)) && currentPosition > maxPosition - flutterView.getWidth();
+    }
+
+    public int getScreenWidth() {
+        // Option A: Using Resources
+        return getResources().getDisplayMetrics().widthPixels;
+
+        // Option B: Using WindowManager (if needed)
+        // See previous explanation for this option
+    }
+
+    public int getScreenHeight() {
+        return getResources().getDisplayMetrics().heightPixels;
+
+        // Option B: Using WindowManager (if needed)
+        // See previous explanation for this option
     }
 
     private class TrayAnimationTimerTask extends TimerTask {
