@@ -405,67 +405,7 @@ public class OverlayService extends Service implements View.OnTouchListener {
         return false;
     }*/
 
-    /// work left side
- /*   @Override
-    public boolean onTouch(View view, MotionEvent event) {
-        if (windowManager != null && WindowSetup.enableDrag) {
-            WindowManager.LayoutParams params = (WindowManager.LayoutParams) flutterView.getLayoutParams();
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    dragging = false;
 
-                    lastX = event.getRawX();
-                    lastY = event.getRawY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    float dx = event.getRawX() - lastX;
-                    float dy = event.getRawY() - lastY;
-
-
-                    // Minimum movement threshold (optional, adjust as needed)
-                    if (!dragging && (dx * dx + dy * dy < 25)) {
-                        return false;
-                    }
-
-                    // Update position for both horizontal and vertical movement
-                    params.x += (int) dx;
-                    params.y += (int) dy;
-
-                    // Handle gravity inversion for all directions
-                    boolean invertX = handleGravityInversion(WindowSetup.gravity, Gravity.LEFT, Gravity.RIGHT, params.x, getScreenWidth() - flutterView.getWidth());
-                    params.x = invertX ? Math.max(params.x, 0) : Math.min(params.x, getScreenWidth() - flutterView.getWidth()); // Prevent off-screen
-
-                    boolean invertY = handleGravityInversion(WindowSetup.gravity, Gravity.TOP, Gravity.BOTTOM, params.y, getScreenHeight() - flutterView.getHeight());
-                    params.y = invertY ? Math.max(params.y, 0) : Math.min(params.y, getScreenHeight() - flutterView.getHeight()); // Prevent off-screen
-
-                    if (windowManager != null) {
-                        windowManager.updateViewLayout(flutterView, params);
-                    }
-                    dragging = true;
-                    lastX = event.getRawX(); // Update start position for continuous drag
-                    lastY = event.getRawY();
-                    break;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    lastYPosition = params.y;
-                    if (!WindowSetup.positionGravity.equals("none")) {
-                        if (windowManager == null) return false;
-                        windowManager.updateViewLayout(flutterView, params);
-                        // Handle potential animation (not shown in current code)
-                    }
-                    return false;
-                default:
-                    return false;
-            }
-            return true; // Indicate event handled to prevent parent views from capturing touches
-        }
-        return false;
-    }
-
-   *//* private boolean handleGravityInversion(int gravity, int leftGravity, int rightGravity, int currentPosition, int maxPosition) {
-        return (gravity == leftGravity || gravity == (Gravity.CENTER | leftGravity) || gravity == (Gravity.BOTTOM | leftGravity)) && currentPosition < 0
-                || (gravity == rightGravity || gravity == (Gravity.CENTER | rightGravity) || gravity == (Gravity.BOTTOM | rightGravity)) && currentPosition > maxPosition;
-    }*/
 
     @Override
     public boolean onTouch(View view, MotionEvent event) {
@@ -474,7 +414,6 @@ public class OverlayService extends Service implements View.OnTouchListener {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     dragging = false;
-
                     lastX = event.getRawX();
                     lastY = event.getRawY();
                     break;
@@ -514,13 +453,14 @@ public class OverlayService extends Service implements View.OnTouchListener {
                     if (!WindowSetup.positionGravity.equals("none")) {
                         if (windowManager == null) return false;
                         windowManager.updateViewLayout(flutterView, params);
+
                         // Handle potential animation (not shown in current code)
                     }
                     return false;
                 default:
                     return false;
             }
-            return true; // Indicate event handled to prevent parent views from capturing touches
+            return false; // Indicate event handled to prevent parent views from capturing touches
         }
         return false;
     }
